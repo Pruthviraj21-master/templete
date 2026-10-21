@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17402f"><title>ClassDesk - Live Demo</title>
+<style>
+:root{--ink:#16231d;--mut:#66756d;--bg:#f4f6f5;--line:#dfe5e1;--g:#17402f;--g2:#e3efe8;--y:#f2c14e;--r:#c2362b;--r2:#fbe9e7}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:720px;margin:0 auto;padding:0 14px calc(150px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;background:var(--g);color:#fff;margin:0 -14px 12px;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;z-index:5}
+header b{font-size:18px}header small{display:block;opacity:.75}
+.demo{background:#fdf1cf;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:10px}
+h2{font-size:17px;margin:18px 0 8px}.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{flex:1;min-width:0}.name{font-weight:600}.sub{color:var(--mut);font-size:14px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px}.stat b{display:block;font-size:24px}.stat.warn{background:var(--r2);border-color:#efc3be}
+button,.btn{font:inherit;font-weight:600;background:var(--g);color:#fff;border:0;border-radius:8px;padding:6px 11px;min-height:36px;text-decoration:none;display:inline-block;cursor:pointer;font-size:14px}
+.ghost{background:var(--g2);color:var(--g)}.A{background:var(--r)}.off{background:#e8ece9;color:#55645c}
+.tag{font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--g2);color:var(--g)}.tag.r{background:var(--r2);color:var(--r)}.tag.y{background:#fdf1cf;color:#7a5b00}
+.empty{text-align:center;color:var(--mut);padding:18px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav button{flex:1;background:none;color:var(--mut);border-radius:0;font-size:12px;padding:8px 2px;min-height:54px}nav button.on{color:var(--g);box-shadow:inset 0 3px 0 var(--y)}nav i{display:block;font-style:normal;font-size:19px}
+.cta{position:fixed;left:10px;right:10px;bottom:calc(64px + env(safe-area-inset-bottom));max-width:700px;margin:auto;background:var(--ink);color:#fff;border-radius:12px;padding:10px 12px;z-index:7;display:flex;gap:10px;align-items:center}
+.cta span{flex:1;font-size:14px}.cta .btn{background:var(--y);color:#16231d}
+#toast{position:fixed;left:50%;top:80px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:99px;opacity:0;transition:.2s;pointer-events:none;z-index:9}#toast.on{opacity:1}
+@media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}}
+</style></head><body>
+<div id="app"></div><div id="toast"></div>
+<div class="cta"><span><b>Like it?</b> Try it free for 2 weeks on your own batch.</span><a class="btn" id="cta" target="_blank" rel="noopener">WhatsApp us</a></div>
+<script>
+/* EDIT THIS: your WhatsApp number with country code, no + or spaces */
+const CONTACT='917499817978', CLASS_NAME='Sample Classes', FEE=4000;
+document.getElementById('cta').href='https://wa.me/'+CONTACT+'?text='+encodeURIComponent('Hello, I saw the ClassDesk demo and want to try it free for 2 weeks.');
+const S=[['Aarav','AAA'],['Sneha','AAA'],['Rohan','PAA'],['Priya','PPP'],['Kabir','PPA'],['Isha','PPP'],['Vedant','PPP'],['Ananya','PPP']].map((x,i)=>({id:i,n:x[0],h:x[1].split(''),paid:i<4?0:FEE,called:false}));
+const E=[{n:'Meera (parent)',st:'Demo done',next:'No next call date set',called:false},{n:'Karan (parent)',st:'Waiting list',next:'Wants evening batch',called:false}];
+let tab='today',att={},rc=0,pays=[];
+const $=s=>document.querySelector(s),rs=n=>'₹'+n.toLocaleString('en-IN');
+const wa=t=>'https://wa.me/?text='+encodeURIComponent(t);
+const toast=m=>{const t=$('#toast');t.textContent=m;t.className='on';setTimeout(()=>t.className='',1800)};
+const hist=s=>s.h.concat(att[s.id]?[att[s.id]]:[]).slice(-3);
+const risk=()=>S.filter(s=>hist(s).join('')==='AAA');
+const due=s=>FEE-s.paid;
+const A={tab:t=>{tab=t;scrollTo(0,0);render()},
+ mark:(i,v)=>{att[i]=att[i]===v?null:v;render()},
+ called:i=>{S[i].called=true;toast('Marked as called');render()},
+ ecalled:i=>{E[i].called=true;render()},
+ collect:i=>{const s=S[i];rc++;const r='R'+String(rc).padStart(4,'0');pays.push({n:s.n,amt:due(s),r});s.paid=FEE;toast('Receipt '+r+' created');render()}};
+const msg=(s)=>`Hello, ${s.n} has missed the last 3 classes. Is everything okay? - ${CLASS_NAME}`;
+function today(){const col=pays.reduce((a,p)=>a+p.amt,0),pend=S.reduce((a,s)=>a+due(s),0),r=risk(),un=r.filter(s=>!s.called);
+ return `<div class="stats"><div class="stat"><b>${rs(col)}</b><span class="sub">Collected today</span></div><div class="stat ${pend?'warn':''}"><b>${rs(pend)}</b><span class="sub">Pending this month</span></div><div class="stat ${un.length?'warn':''}"><b>${un.length}</b><span class="sub">Empty seats not called</span></div><div class="stat"><b>${E.filter(e=>!e.called).length}</b><span class="sub">Demo calls due</span></div></div>
+ <h2>Missed 3 classes in a row</h2>${r.length?r.map(s=>`<div class="card"><div class="name">${s.n} <span class="tag ${s.called?'':'r'}">${s.called?'Called':'Not called'}</span></div><div class="sub">Evening 8th · ${rs(FEE)}/month at risk</div><div class="row" style="margin-top:8px"><a class="btn ghost" target="_blank" href="${wa(msg(s))}">WhatsApp</a>${s.called?'':`<button onclick="A.called(${s.id})">I called</button>`}</div></div>`).join(''):'<div class="empty">No one has missed 3 classes in a row.</div>'}
+ <h2>Demo calls due</h2>${E.map((e,i)=>e.called?'':`<div class="card row"><div class="sp"><div class="name">${e.n}</div><div class="sub">${e.st} · ${e.next}</div></div><button onclick="A.ecalled(${i})">I called</button></div>`).join('')||'<div class="empty">All demo calls done.</div>'}
+ <div class="demo">Try it: go to <b>Attend</b>, mark Rohan absent today, then come back here.</div>`}
+function attend(){return `<div class="sub" style="margin-bottom:8px">Evening 8th · today</div>${S.map(s=>`<div class="card row"><div class="sp name">${s.n}</div><button class="${att[s.id]==='P'?'':'off'}" onclick="A.mark(${s.id},'P')">Present</button><button class="${att[s.id]==='A'?'A':'off'}" onclick="A.mark(${s.id},'A')">Absent</button></div>`).join('')}`}
+function fees(){const p=S.filter(s=>due(s)>0);
+ return `<h2>Pending this month</h2>${p.length?p.map(s=>`<div class="card"><div class="name">${s.n}</div><div class="sub">due ${rs(due(s))} of ${rs(FEE)}</div><div class="row" style="margin-top:8px"><button onclick="A.collect(${s.id})">Collect ${rs(due(s))}</button><a class="btn ghost" target="_blank" href="${wa(`Hello, fee of ${rs(due(s))} for ${s.n} is pending. - ${CLASS_NAME}`)}">Remind</a></div></div>`).join(''):'<div class="empty">All fees collected.</div>'}
+ <h2>Receipts</h2>${pays.length?pays.map(x=>`<div class="card row"><div class="sp"><div class="name">${rs(x.amt)} · ${x.n}</div><div class="sub">Receipt ${x.r}</div></div><a class="btn ghost" target="_blank" href="${wa(`Receipt ${x.r}: received ${rs(x.amt)} for ${x.n}. Thank you. - ${CLASS_NAME}`)}">Send receipt</a></div>`).join(''):'<div class="empty">Collect a fee above to create a numbered receipt.</div>'}`}
+function demos(){return `<div class="demo">Every enquiry gets a status and a next call date, so no parent is forgotten.</div>${E.map(e=>`<div class="card"><div class="name">${e.n} <span class="tag y">${e.st}</span></div><div class="sub">${e.next}</div></div>`).join('')}`}
+const T=[['today','◉','Today',today],['att','✓','Attend',attend],['fees','₹','Fees',fees],['demo','☎','Demos',demos]];
+function render(){const c=T.find(t=>t[0]===tab);$('#app').innerHTML=`<header><b>${CLASS_NAME}</b><small>${c[2]}</small></header><div class="demo"><b>Live demo</b> with sample students. Nothing is saved.</div>${c[3]()}<nav>${T.map(t=>`<button class="${t[0]===tab?'on':''}" onclick="A.tab('${t[0]}')"><i>${t[1]}</i>${t[2]}</button>`).join('')}</nav>`}
+render();
+</script></body></html>
